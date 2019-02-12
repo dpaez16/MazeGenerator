@@ -14,6 +14,7 @@ Maze::~Maze() {
 void markProperWall(Cell *& previousCell, Cell *& currentCell, Direction dir) {
 	if (previousCell == nullptr)
 		return;
+
 	if (dir == N)
 		currentCell->setSouthWall(false);
 	else if (dir == E)

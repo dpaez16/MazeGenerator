@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <ctime>
 #include <tuple>
+#include <png++/png.hpp>
 #include "cell.h"
 
 using namespace std;
