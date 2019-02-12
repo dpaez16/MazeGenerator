@@ -2,7 +2,6 @@
 
 Maze::Maze(int length) {
 	this->length = length;
-
 	this->createEmptyMaze();
 }
 
@@ -91,10 +90,97 @@ void Maze::generateMaze() {
 	unsolvedImage.write("unsolvedMaze.png");
 }
 
+bool pixelIsWhite(rgb_pixel & pixel) {
+	return ((int)pixel.red == 255) && ((int)pixel.green == 255) && ((int)pixel.blue == 255);
+}
+
+vector<tuple<int, int>> Maze::getPixelNeighbors(Cell *& c, image<rgb_pixel> & img) {
+	int rowIdx = 2*c->getRowIdx() + 1;
+	int colIdx = 2*c->getColIdx() + 1;
+
+	vector<tuple<int, int>> neighbors;
+
+	if (this->coordinateInsideMaze(rowIdx - 1, colIdx)) {
+		if (pixelIsWhite(img[rowIdx - 1][colIdx]))
+			neighbors.push_back(make_tuple(rowIdx - 1, colIdx));
+	}
+	
+	if (this->coordinateInsideMaze(rowIdx, colIdx + 1)) {
+		if (pixelIsWhite(img[rowIdx][colIdx + 1]))
+			neighbors.push_back(make_tuple(rowIdx, colIdx + 1));
+	}
+	
+	if (this->coordinateInsideMaze(rowIdx + 1, colIdx)) {
+		if (pixelIsWhite(img[rowIdx + 1][colIdx]))
+			neighbors.push_back(make_tuple(rowIdx + 1, colIdx));
+	}
+
+	if (this->coordinateInsideMaze(rowIdx, colIdx - 1)) {
+		if (pixelIsWhite(img[rowIdx][colIdx - 1]))
+			neighbors.push_back(make_tuple(rowIdx, colIdx - 1));
+	}
+	
+	return neighbors;
+}
+
+stack<Cell *> Maze::solveMazeHelper(Cell *& c, stack<Cell *> s, image<rgb_pixel> & img) {
+	stack<Cell *> emptyStack;
+	if (c == nullptr)
+		return emptyStack;
+
+	int rowIdx = c->getRowIdx();
+	int colIdx = c->getColIdx();
+
+	Cell * currentCell = this->M[rowIdx][colIdx];
+	currentCell->markCellAsVisited();
+	
+	if (currentCell == this->M[this->length - 1][this->length - 1])
+		return s;
+
+	vector<tuple<int, int>> neighbors = getPixelNeighbors(currentCell, img);
+	for (tuple<int, int> neighbor : neighbors) {
+		int nRowIdx = (int)((get<0>(neighbor) - 1)/2);
+		int nColIdx = (int)((get<1>(neighbor) - 1)/2);
+
+		Cell * nCell = this->M[nRowIdx][nColIdx];
+		if (!nCell->isVisited()) {
+			s.push(nCell);
+			stack<Cell *> path = solveMazeHelper(nCell, s, img);
+			if (!path.empty())
+				return path;
+		}
+	}
+
+	return emptyStack;
+}
+
+void writePathToMaze(stack<Cell *> & solvedPath, image<rgb_pixel> & solvedImage) {
+	while (!solvedPath.empty()) {
+		Cell * currentCell = solvedPath.top();
+		solvedPath.pop();
+
+		int rowIdx = 2*currentCell->getRowIdx() + 1;
+		int colIdx = 2*currentCell->getColIdx() + 1;
+
+		solvedImage[rowIdx][colIdx] = rgb_pixel(255, 0, 0);
+	}
+}
+
 void Maze::solveMaze() {
 	assert(this->M.empty() == false);
-	
-	return;
+	this->unmarkCells();
+
+	image<rgb_pixel> solvedImage("unsolvedMaze.png");
+	stack<Cell *> s;
+	Cell * start = this->M[0][0];
+	s.push(start);
+
+	stack<Cell *> solvedPath = solveMazeHelper(start, s, solvedImage);
+	writePathToMaze(solvedPath, solvedImage);
+
+	solvedImage[1][0] = rgb_pixel(255, 0, 0);
+	solvedImage[this->length - 2][this->length - 1] = rgb_pixel(255, 0, 0);
+	solvedImage.write("solvedMaze.png");
 }
 
 // Helper functions
@@ -123,6 +209,13 @@ void Maze::clearMaze() {
 	}
 
 	this->M.clear();	
+}
+
+void Maze::unmarkCells() {
+	for (int rowIdx = 0; rowIdx < this->length; rowIdx++) {
+		for (int colIdx = 0; colIdx < this->length; colIdx++)
+			this->M[rowIdx][colIdx]->unmarkCell();
+	}
 }
 
 bool Maze::coordinateInsideMaze(int rowIdx, int colIdx) {

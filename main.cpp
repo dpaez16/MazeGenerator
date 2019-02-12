@@ -22,7 +22,9 @@ int main(int argc, char ** argv) {
 	checkArgs(argc, argv, length);
 
 	Maze maze(length);
+	
 	maze.generateMaze();
+	maze.solveMaze();
 
 	return 0;
 }
