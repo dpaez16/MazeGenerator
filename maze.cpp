@@ -1,4 +1,5 @@
 #include "maze.h"
+#include <iostream>
 
 Maze::Maze(int length) {
 	this->length = length;
@@ -90,6 +91,21 @@ void Maze::generateMaze() {
 	unsolvedImage.write("unsolvedMaze.png");
 }
 
+void writePathToMaze(stack<Cell *> & solvedPath, image<rgb_pixel> & solvedImage) {
+	while (!solvedPath.empty()) {
+		Cell * currentCell = solvedPath.top();
+		solvedPath.pop();
+
+		int rowIdx = 2*currentCell->getRowIdx() + 1;
+		int colIdx = 2*currentCell->getColIdx() + 1;
+
+		solvedImage[rowIdx][colIdx] = rgb_pixel(255, 0, 0);
+	}
+
+	solvedImage[1][0] = rgb_pixel(255, 0, 0);
+	solvedImage[solvedImage.get_height() - 2][solvedImage.get_width() - 1] = rgb_pixel(255, 0, 0);
+}
+
 bool pixelIsWhite(rgb_pixel & pixel) {
 	return ((int)pixel.red == 255) && ((int)pixel.green == 255) && ((int)pixel.blue == 255);
 }
@@ -134,8 +150,10 @@ stack<Cell *> Maze::solveMazeHelper(Cell *& c, stack<Cell *> s, image<rgb_pixel>
 	Cell * currentCell = this->M[rowIdx][colIdx];
 	currentCell->markCellAsVisited();
 	
-	if (currentCell == this->M[this->length - 1][this->length - 1])
+	if (currentCell == this->M[this->length - 1][this->length - 1]) {
+		cout << "GOT IT" << endl;
 		return s;
+	}
 
 	vector<tuple<int, int>> neighbors = getPixelNeighbors(currentCell, img);
 	for (tuple<int, int> neighbor : neighbors) {
@@ -154,18 +172,6 @@ stack<Cell *> Maze::solveMazeHelper(Cell *& c, stack<Cell *> s, image<rgb_pixel>
 	return emptyStack;
 }
 
-void writePathToMaze(stack<Cell *> & solvedPath, image<rgb_pixel> & solvedImage) {
-	while (!solvedPath.empty()) {
-		Cell * currentCell = solvedPath.top();
-		solvedPath.pop();
-
-		int rowIdx = 2*currentCell->getRowIdx() + 1;
-		int colIdx = 2*currentCell->getColIdx() + 1;
-
-		solvedImage[rowIdx][colIdx] = rgb_pixel(255, 0, 0);
-	}
-}
-
 void Maze::solveMaze() {
 	assert(this->M.empty() == false);
 	this->unmarkCells();
@@ -178,8 +184,6 @@ void Maze::solveMaze() {
 	stack<Cell *> solvedPath = solveMazeHelper(start, s, solvedImage);
 	writePathToMaze(solvedPath, solvedImage);
 
-	solvedImage[1][0] = rgb_pixel(255, 0, 0);
-	solvedImage[this->length - 2][this->length - 1] = rgb_pixel(255, 0, 0);
 	solvedImage.write("solvedMaze.png");
 }
 
