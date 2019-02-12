@@ -26,6 +26,11 @@ int main(int argc, char ** argv) {
 	checkArgs(argc, argv, length, width);
 
 	Maze maze(length, width);
+
+	maze.printMaze();
+	std::cout << endl;
+	
+	maze.generateMaze();
 	maze.printMaze();
 
 	return 0;

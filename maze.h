@@ -12,14 +12,17 @@ class Maze {
 		void generateMaze();
 		void solveMaze();	
 		void printMaze();
+		~Maze();
 
 	private:
 		int length;
 		int width;
-		vector<vector<Cell>> M;
+		vector<vector<Cell *>> M;
 
 		void clearMaze();
 		void createEmptyMaze();
+		vector<Cell *> getNeighbors(Cell *& c);
+		bool coordinateInsideMaze(int rowIdx, int colIdx);
 };
 
 #endif
