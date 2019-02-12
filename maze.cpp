@@ -1,11 +1,4 @@
 #include "maze.h"
-#include <iostream>
-#include <assert.h>
-#include <stack>
-
-enum Direction {
-	N, E, S, W
-};
 
 Maze::Maze(int length, int width) {
 	this->length = length;
@@ -18,26 +11,44 @@ Maze::~Maze() {
 	this->clearMaze();
 }
 
+void markProperWall(Cell *& previousCell, Cell *& currentCell, Direction dir) {
+	if (previousCell == nullptr)
+		return;
+	if (dir == N)
+		currentCell->setSouthWall(false);
+	else if (dir == E)
+		previousCell->setEastWall(false);
+	else if (dir == S)
+		previousCell->setSouthWall(false);
+	else
+		currentCell->setEastWall(false);
+}
+
 void Maze::generateMaze() {
 	this->createEmptyMaze();
+	srand(time(0));
 
-	std::stack<Cell *> s;
-	s.push(this->M[0][0]);
+	stack<tuple<Cell *, Cell *, Direction>> s;
+	s.push(make_tuple(nullptr, this->M[0][0], E));
 
 	while(!s.empty()) {
-		Cell * currentCell = s.top();
+		tuple<Cell *, Cell *, Direction> t = s.top();
+		
+		Cell * previousCell = get<0>(t);
+		Cell * currentCell = get<1>(t);
+		Direction dir = get<2>(t);
+
+		currentCell->markCellAsVisited();
 		s.pop();
 
-		currentCell->setEastWall(false);
+		markProperWall(previousCell, currentCell, dir);
 
-		vector<Cell *> neighbors = this->getNeighbors(currentCell);
-		for (Cell * neighbor : neighbors) {
-			neighbor->markCellAsVisited();
+		vector<tuple<Cell *, Cell *, Direction>> neighbors = this->getNeighbors(currentCell);
+		random_shuffle(begin(neighbors), end(neighbors));
+
+		for (tuple<Cell *, Cell *, Direction> neighbor : neighbors)
 			s.push(neighbor);
-		}
 	}
-
-	return;
 }
 
 void Maze::solveMaze() {
@@ -56,15 +67,15 @@ void Maze::printMaze() {
 			bool southWall = cell->getSouthWall();
 
 			if (eastWall && southWall)
-				std::cout << "_|";
+				cout << "_|";
 			else if (eastWall && !southWall)
-				std::cout << " |";
+				cout << " |";
 			else if (!eastWall && southWall)
-				std::cout << "_ ";
+				cout << "_ ";
 			else
-				std::cout << "  ";
+				cout << "  ";
 		}
-		std::cout << endl;
+		cout << endl;
 	}
 }
 
@@ -97,44 +108,38 @@ void Maze::clearMaze() {
 }
 
 bool Maze::coordinateInsideMaze(int rowIdx, int colIdx) {
-	return (0 <= rowIdx) && (rowIdx < this->length) && (0 <= colIdx) && (colIdx <= this->width);
+	return (0 <= rowIdx) && (rowIdx < this->length) && (0 <= colIdx) && (colIdx < this->width);
 }
 
-bool canGoToNeighbor(Cell *& neighbor, Direction dir) {
-	assert((dir == N) || (dir == W));
-
-	if (dir == N)
-		return !neighbor->getSouthWall() && !neighbor->isVisited();
-	else // dir == W
-		return !neighbor->getEastWall() && !neighbor->isVisited();
-}
-
-vector<Cell *> Maze::getNeighbors(Cell *& c) {
-	vector<Cell *> neighbors;
+vector<tuple<Cell *, Cell *, Direction>> Maze::getNeighbors(Cell *& c) {
+	vector<tuple<Cell *, Cell *, Direction>> neighbors;
 	int rowIdx = c->getRowIdx();
 	int colIdx = c->getColIdx();
 
 	if (this->coordinateInsideMaze(rowIdx - 1, colIdx)) {
-		Cell * neighbor = this->M[rowIdx][colIdx];
-		if (canGoToNeighbor(neighbor, N))
-			neighbors.push_back(neighbor);
-	}
-
-	if (this->coordinateInsideMaze(rowIdx + 1, colIdx)) {
-		if (!c->getSouthWall() && !c->isVisited())
-			neighbors.push_back(this->M[rowIdx + 1][colIdx]);
-	}
-	
-	if (this->coordinateInsideMaze(rowIdx, colIdx - 1)) {
-		if (!c->getEastWall() && !c->isVisited())
-			neighbors.push_back(this->M[rowIdx][colIdx - 1]);
+		Cell * neighbor = this->M[rowIdx - 1][colIdx];
+		if (!neighbor->isVisited())
+			neighbors.push_back(make_tuple(c, neighbor, N));
 	}
 	
 	if (this->coordinateInsideMaze(rowIdx, colIdx + 1)) {
 		Cell * neighbor = this->M[rowIdx][colIdx + 1];
-		if (canGoToNeighbor(neighbor, W))
-			neighbors.push_back(neighbor);
+		if (!neighbor->isVisited())
+			neighbors.push_back(make_tuple(c, neighbor, E));
 	}
+
+	if (this->coordinateInsideMaze(rowIdx + 1, colIdx)) {
+		Cell * neighbor = this->M[rowIdx + 1][colIdx];
+		if (!neighbor->isVisited())
+			neighbors.push_back(make_tuple(c, neighbor, S));
+	}
+	
+	if (this->coordinateInsideMaze(rowIdx, colIdx - 1)) {
+		Cell * neighbor = this->M[rowIdx][colIdx - 1];
+		if (!neighbor->isVisited())
+			neighbors.push_back(make_tuple(c, neighbor, W));
+	}
+	
 
 	return neighbors;
 }

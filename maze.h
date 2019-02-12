@@ -2,9 +2,19 @@
 #define MAZE_H
 
 #include <vector>
+#include <iostream>
+#include <assert.h>
+#include <stack>
+#include <algorithm>
+#include <ctime>
+#include <tuple>
 #include "cell.h"
 
 using namespace std;
+
+enum Direction {
+	N, E, S, W
+};
 
 class Maze {
 	public:
@@ -21,7 +31,7 @@ class Maze {
 
 		void clearMaze();
 		void createEmptyMaze();
-		vector<Cell *> getNeighbors(Cell *& c);
+		vector<tuple<Cell *, Cell *, Direction>> getNeighbors(Cell *& c);
 		bool coordinateInsideMaze(int rowIdx, int colIdx);
 };
 
