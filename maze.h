@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <ctime>
 #include <tuple>
+#include <stdio.h>
 #include <png++/png.hpp>
 #include "cell.h"
 

@@ -29,6 +29,11 @@ void Maze::generateMaze() {
 	this->createEmptyMaze();
 	srand(time(0));
 
+	png::image<png::rgb_pixel> img(this->length, this->width);
+	//char fileName[50];
+	//sprintf(fileName, "maze_%d_%d.png", this->length, this->width);
+	img.write("maze_unsolved.png");
+
 	stack<tuple<Cell *, Cell *, Direction>> s;
 	s.push(make_tuple(nullptr, this->M[0][0], E));
 
