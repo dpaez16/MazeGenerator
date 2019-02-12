@@ -1,37 +1,28 @@
 #include "maze.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <assert.h>
-#include <iostream>
 
 void printUsage() {
-	fprintf(stderr, "Usage: ./maze length height\n");
+	fprintf(stderr, "Usage: ./maze length\n");
 	exit(1);
 }
 
-void checkArgs(int argc, char ** argv, int & length, int & width) {
-	if (argc != 3)
+void checkArgs(int argc, char ** argv, int & length) {
+	if (argc != 2)
 		printUsage();
 	
 	if (sscanf(argv[1], "%d", &length) == 0)
 		printUsage();
-	if (sscanf(argv[2], "%d", &width) == 0)
-		printUsage();
 
-	assert(length != 0 && width != 0);
+	assert(length != 0);
 }
 
 int main(int argc, char ** argv) {
-	int length, width;
-	checkArgs(argc, argv, length, width);
+	int length;
+	checkArgs(argc, argv, length);
 
-	Maze maze(length, width);
-
-	maze.printMaze();
-	std::cout << endl;
-	
+	Maze maze(length);
 	maze.generateMaze();
-	maze.printMaze();
 
 	return 0;
 }

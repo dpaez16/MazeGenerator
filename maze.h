@@ -2,9 +2,9 @@
 #define MAZE_H
 
 #include <vector>
-#include <iostream>
 #include <assert.h>
 #include <stack>
+#include <queue>
 #include <algorithm>
 #include <ctime>
 #include <tuple>
@@ -13,6 +13,7 @@
 #include "cell.h"
 
 using namespace std;
+using namespace png;
 
 enum Direction {
 	N, E, S, W
@@ -20,15 +21,13 @@ enum Direction {
 
 class Maze {
 	public:
-		Maze(int length, int width);
+		Maze(int length);
 		void generateMaze();
 		void solveMaze();	
-		void printMaze();
 		~Maze();
 
 	private:
 		int length;
-		int width;
 		vector<vector<Cell *>> M;
 
 		void clearMaze();
