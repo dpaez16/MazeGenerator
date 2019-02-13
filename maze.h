@@ -32,11 +32,11 @@ class Maze {
 
 		void clearMaze();
 		void createEmptyMaze();
-		void unmarkCells();
+		vector<vector<bool>> getVisitedMatrix();
 		vector<tuple<Cell *, Cell *, Direction>> getNeighbors(Cell *& c);
 		bool coordinateInsideMaze(int rowIdx, int colIdx);
-		stack<Cell *> solveMazeHelper(Cell *& c, stack<Cell *> s, image<rgb_pixel> & img);
-		vector<tuple<int, int>> getPixelNeighbors(Cell *& c, image<rgb_pixel> & img);
+		bool solveMazeHelper(int rowIdx, int colIdx, image<rgb_pixel> & img, vector<vector<bool>> visited);
+		vector<tuple<int, int>> getPixelNeighbors(int rowIdx, int colIdx, image<rgb_pixel> & img);
 };
 
 #endif
