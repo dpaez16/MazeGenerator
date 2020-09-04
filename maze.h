@@ -28,7 +28,7 @@ class Maze {
 
 	private:
 		int length;
-		vector<vector<Cell *>> M;
+		Cell *** M = NULL;
 
 		void clearMaze();
 		void createEmptyMaze();

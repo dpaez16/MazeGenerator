@@ -1,5 +1,6 @@
 EXENAME = maze
-COMPILER = g++
+CC = g++
+CC_FLAGS = -O2 -Wall
 OBJS = main.o maze.o cell.o
 LIBPNG_OBJ = libpng-config --cflags
 LIBPNG_FINAL = libpng-config --ldflags --libs
@@ -8,18 +9,18 @@ CELL = cell.h cell.cpp
 MAZE = maze.h maze.cpp
 
 build: $(OBJS)
-	$(COMPILER) -o $(EXENAME) $(OBJS) `$(LIBPNG_FINAL)`
+	$(CC) $(CC_FLAGS) -o $(EXENAME) $(OBJS) `$(LIBPNG_FINAL)`
 
 main: main.cpp maze.h cell.h
-	$(COMPILER) -c main.cpp maze.h cell.h `$(LIBPNG_OBJ)`
+	$(CC) $(CC_FLAGS) -c main.cpp maze.h cell.h `$(LIBPNG_OBJ)`
 
 maze: $(MAZE)
-	$(COMPILER) -c $(MAZE) `$(LIBPNG_OBJ)`
+	$(CC) $(CC_FLAGS) -c $(MAZE) `$(LIBPNG_OBJ)`
 
 cell: $(CELL)
-	$(COMPILER) -c $(CELL)
+	$(CC) $(CC_FLAGS) -c $(CELL)
 
 clean:
-	rm -rf $(EXENAME) *.o *.png
+	rm -rf $(EXENAME) *.o *.gch *.png
 	clear
 	clear

@@ -11,7 +11,7 @@ Maze::~Maze() {
 }
 
 void markProperWall(Cell *& previousCell, Cell *& currentCell, Direction dir, image<rgb_pixel> & img) {
-	if (previousCell == nullptr)
+	if (previousCell == NULL)
 		return;
 
 	int rowIdx = previousCell->getRowIdx();
@@ -66,7 +66,7 @@ void Maze::generateMaze() {
 	clearPNG(unsolvedImage);
 
 	stack<tuple<Cell *, Cell *, Direction>> s;
-	s.push(make_tuple(nullptr, this->M[0][0], E));
+	s.push(make_tuple((Cell *)NULL, this->M[0][0], E));
 
 	while(!s.empty()) {
 		tuple<Cell *, Cell *, Direction> t = s.top();
@@ -167,7 +167,7 @@ bool Maze::solveMazeHelper(int rowIdx, int colIdx, image<rgb_pixel> & img, vecto
 }
 
 void Maze::solveMaze() {
-	assert(this->M.empty() == false);
+	assert(this->M != NULL);
 	
 	image<rgb_pixel> solvedImage("unsolvedMaze.png");
 	vector<vector<bool>> visited = getVisitedMatrix();
@@ -178,11 +178,12 @@ void Maze::solveMaze() {
 // Helper functions
 
 void Maze::createEmptyMaze() {
-	this->clearMaze();
+	if (this->M != NULL)
+		this->clearMaze();
 
-	this->M.resize(this->length);
+	this->M = new Cell ** [this->length];
 	for (int rowIdx = 0; rowIdx < this->length; rowIdx++) {
-		this->M[rowIdx].resize(this->length);
+		this->M[rowIdx] = new Cell * [this->length];
 		for (int colIdx = 0; colIdx < this->length; colIdx++) {
 			this->M[rowIdx][colIdx] = new Cell(rowIdx, colIdx);
 		}
@@ -190,17 +191,18 @@ void Maze::createEmptyMaze() {
 }
 
 void Maze::clearMaze() {
-	if (this->M.empty())
+	if (this->M == NULL)
 		return;
 
 	for (int rowIdx = 0; rowIdx < this->length; rowIdx++) {
 		for (int colIdx = 0; colIdx < this->length; colIdx++) {
 			delete this->M[rowIdx][colIdx];
 		}
-		this->M[rowIdx].clear();
+		delete [] this->M[rowIdx];
 	}
 
-	this->M.clear();	
+	delete [] this->M;
+	this->M = NULL;
 }
 
 bool Maze::coordinateInsideMaze(int rowIdx, int colIdx) {
