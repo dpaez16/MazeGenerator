@@ -125,12 +125,12 @@ vector<tuple<int, int>> Maze::getPixelNeighbors(int rowIdx, int colIdx, image<rg
 	return neighbors;
 }
 
-vector<vector<bool>> Maze::getVisitedMatrix() {
-	vector<vector<bool>> visitedMatrix;
+bool ** Maze::getVisitedMatrix() {
+	bool ** visitedMatrix;
 
-	visitedMatrix.resize(2*this->length + 1);
+	visitedMatrix = new bool * [2*this->length + 1];
 	for (int rowIdx = 0; rowIdx < (2*this->length + 1); rowIdx++) {
-		visitedMatrix[rowIdx].resize(2*this->length + 1);
+		visitedMatrix[rowIdx] = new bool [2*this->length + 1];
 		for (int colIdx = 0; colIdx < (2*this->length + 1); colIdx++) {
 			visitedMatrix[rowIdx][colIdx] = false;
 		}
@@ -139,7 +139,7 @@ vector<vector<bool>> Maze::getVisitedMatrix() {
 	return visitedMatrix;
 }
 
-bool Maze::solveMazeHelper(int rowIdx, int colIdx, image<rgb_pixel> & img, vector<vector<bool>> visited) {
+bool Maze::solveMazeHelper(int rowIdx, int colIdx, image<rgb_pixel> & img, bool **& visited) {
 	if (rowIdx == ((int)img.get_height() - 2) && colIdx == ((int)img.get_width() - 1)) {
 		visited[rowIdx][colIdx] = true;
 		img[rowIdx][colIdx] = rgb_pixel(255, 0, 0);
@@ -170,8 +170,15 @@ void Maze::solveMaze() {
 	assert(this->M != NULL);
 	
 	image<rgb_pixel> solvedImage("unsolvedMaze.png");
-	vector<vector<bool>> visited = getVisitedMatrix();
+	bool ** visited = getVisitedMatrix();
 	(void)solveMazeHelper(1, 0, solvedImage, visited);
+
+	for (int rowIdx = 0; rowIdx < (2*this->length + 1); rowIdx++) {
+		delete [] visited[rowIdx];
+	}
+
+	delete [] visited;
+
 	solvedImage.write("solvedMaze.png");
 }
 
