@@ -1,5 +1,7 @@
 #include "maze.h"
 #include <iostream>
+#include <unordered_set>
+#include <unordered_map>
 
 Maze::Maze(int length) {
 	this->length = length;
@@ -60,7 +62,8 @@ void clearPNG(image<rgb_pixel> & img) {
 
 void Maze::generateMaze() {
 	this->createEmptyMaze();
-	srand(time(0));
+	//srand(time(0));
+	srand(400);
 	
 	image<rgb_pixel> unsolvedImage(2*this->length + 1, 2*this->length + 1);
 	clearPNG(unsolvedImage);
@@ -99,27 +102,28 @@ bool coordinateInsidePicture(int rowIdx, int colIdx, image<rgb_pixel> & img) {
 	return (0 <= rowIdx) && (rowIdx < img.get_height()) && (0 <= colIdx) && (colIdx < img.get_width());
 }
 
-vector<tuple<int, int>> Maze::getPixelNeighbors(int rowIdx, int colIdx, image<rgb_pixel> & img) {
-	vector<tuple<int, int>> neighbors;
+vector<pair<int, int>> Maze::getPixelNeighbors(int rowIdx, int colIdx, image<rgb_pixel> & img) {
+	vector<pair<int, int>> neighbors;
+	neighbors.reserve(4);
 
 	if (coordinateInsidePicture(rowIdx - 1, colIdx, img)) {
 		if (pixelIsWhite(img[rowIdx - 1][colIdx]))
-			neighbors.push_back(make_tuple(rowIdx - 1, colIdx));
+			neighbors.push_back(pair<int, int>(rowIdx - 1, colIdx));
 	}
 	
 	if (coordinateInsidePicture(rowIdx, colIdx + 1, img)) {
 		if (pixelIsWhite(img[rowIdx][colIdx + 1]))
-			neighbors.push_back(make_tuple(rowIdx, colIdx + 1));
+			neighbors.push_back(pair<int, int>(rowIdx, colIdx + 1));
 	}
 	
 	if (coordinateInsidePicture(rowIdx + 1, colIdx, img)) {
 		if (pixelIsWhite(img[rowIdx + 1][colIdx]))
-			neighbors.push_back(make_tuple(rowIdx + 1, colIdx));
+			neighbors.push_back(pair<int, int>(rowIdx + 1, colIdx));
 	}
 
 	if (coordinateInsidePicture(rowIdx, colIdx - 1, img)) {
 		if (pixelIsWhite(img[rowIdx][colIdx - 1]))
-			neighbors.push_back(make_tuple(rowIdx, colIdx - 1));
+			neighbors.push_back(pair<int, int>(rowIdx, colIdx - 1));
 	}
 	
 	return neighbors;
@@ -139,31 +143,73 @@ bool ** Maze::getVisitedMatrix() {
 	return visitedMatrix;
 }
 
-bool Maze::solveMazeHelper(int rowIdx, int colIdx, image<rgb_pixel> & img, bool **& visited) {
-	if (rowIdx == ((int)img.get_height() - 2) && colIdx == ((int)img.get_width() - 1)) {
-		visited[rowIdx][colIdx] = true;
-		img[rowIdx][colIdx] = rgb_pixel(255, 0, 0);
-		return true;
+struct pair_hash {
+	template <class T1, class T2>
+	size_t operator()(pair<T1, T2> const & pair) const {
+		size_t h1 = hash<T1>()(pair.first);
+		size_t h2 = hash<T1>()(pair.second);
+		
+		return h1 ^ h2;
 	}
+};
 
-	if (!visited[rowIdx][colIdx]) {
-		visited[rowIdx][colIdx] = true;
+void Maze::solveMazeHelper(int startRowIdx, int startColIdx, image<rgb_pixel> & img, bool **& visited) {
+	unordered_map<pair<int, int>, unsigned, pair_hash> dist;
+	unordered_map<pair<int, int>, pair<int, int>, pair_hash> prev;
+	unordered_set<pair<int, int>, pair_hash> q;
 
-		rgb_pixel oldPixel = img[rowIdx][colIdx];
-		img[rowIdx][colIdx] = rgb_pixel(255, 0, 0);
+	for (int rowIdx = 0; rowIdx < (2*this->length + 1); rowIdx++) {
+		for (int colIdx = 0; colIdx < (2*this->length + 1); colIdx++) {
+			pair<int, int> curr(rowIdx, colIdx);
+			dist[curr] = -1; //infinity
+			prev[curr] = pair<int, int>(-1, -1); // undefined
+			q.insert(curr);
+		}
+	}
+	
+	dist[pair<int, int>(startRowIdx, startColIdx)] = 0;
 
-		vector<tuple<int, int>> neighbors = getPixelNeighbors(rowIdx, colIdx, img);
-		for (tuple<int, int> neighbor : neighbors) {
-			int nRowIdx = get<0>(neighbor);
-			int nColIdx = get<1>(neighbor);
-			if (this->solveMazeHelper(nRowIdx, nColIdx, img, visited))
-				return true;
+	while (!q.empty()) {
+		unsigned min_dist = -1;
+		pair<int, int> u;
+
+		for (pair<int, int> v : q) {
+			if (min_dist > dist[v]) {
+				cout << dist[v] << endl;
+				min_dist = dist[v];
+				u = v;
+			}
 		}
 
-		img[rowIdx][colIdx] = oldPixel;
+		q.erase(u);
+		cout << u.first << ' ' << u.second << ' ' << min_dist << endl;
+		int rowIdx = u.first;
+		int colIdx = u.second;
+
+		vector<pair<int, int>> neighbors = this->getPixelNeighbors(rowIdx, colIdx, img);
+
+		for (pair<int, int> v : neighbors) {
+			unsigned alt = dist[u];
+			if (dist[u] != -1) alt++;
+
+			if (alt < dist[v]) {
+				dist[v] = alt;
+				prev[v] = u;
+			}
+		}
+	
 	}
 
-	return false;
+	pair<int, int> u(img.get_height() - 2, img.get_width() - 1); // target
+	if (prev[u] != pair<int, int>(-1, -1) || u == pair<int, int>(startRowIdx, startColIdx)) {
+		while (prev[u] != pair<int, int>(-1, -1)) {
+			int rowIdx = u.first;
+			int colIdx = u.second;
+
+			img[rowIdx][colIdx] = rgb_pixel(255, 0, 0);
+			u = prev[u];
+		}
+	}
 }
 
 void Maze::solveMaze() {
