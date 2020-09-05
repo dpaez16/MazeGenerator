@@ -6,6 +6,7 @@
 #define WHITE rgb_pixel(255, 255, 255)
 #define BLACK rgb_pixel(0, 0, 0)
 #define RED rgb_pixel(255, 0, 0)
+#define BLUE rgb_pixel(0, 255, 0)
 
 Maze::Maze(int length) {
 	this->length = length;
@@ -48,7 +49,7 @@ void clearPNG(image<rgb_pixel> & img) {
 		}
 	}
 
-	img[1][0] = WHITE; 										// start
+	img[1][0] = WHITE;					// start
 	img[img.get_height() - 2][img.get_width() - 1] = WHITE;	// end
 }
 
@@ -94,7 +95,9 @@ bool coordinateInsidePicture(unsigned rowIdx, unsigned colIdx, image<rgb_pixel> 
 	return (0 <= rowIdx) && (rowIdx < img.get_height()) && (0 <= colIdx) && (colIdx < img.get_width());
 }
 
-vector<pair<int, int>> Maze::getPixelNeighbors(int rowIdx, int colIdx, image<rgb_pixel> & img) {
+vector<pair<int, int>> Maze::getPixelNeighbors(pair<int, int> & curr, image<rgb_pixel> & img) {
+	int rowIdx = curr.first;
+	int colIdx = curr.second;
 	vector<pair<int, int>> neighbors;
 	neighbors.reserve(4);
 
@@ -122,71 +125,42 @@ vector<pair<int, int>> Maze::getPixelNeighbors(int rowIdx, int colIdx, image<rgb
 }
 
 void Maze::solveMazeHelper(int startRowIdx, int startColIdx, image<rgb_pixel> & img) {
-	unordered_map<pair<int, int>, unsigned, pair_hash> dist;
-	unordered_map<pair<int, int>, pair<int, int>, pair_hash> prev;
-	unordered_set<pair<int, int>, pair_hash> q;
+	stack<pair<pair<int, int>, pair<int, int>>> stk;
+	unordered_set<pair<int, int>, pair_hash> s;
+	unordered_map<pair<int, int>, pair<int, int>, pair_hash> edge_map;
 
-	const unsigned INFTY = -1;
 	const pair<int, int> UNDEFINED(-1, -1);
 	const pair<int, int> START(startRowIdx, startColIdx);
 	const pair<int, int> END(img.get_height() - 2, img.get_width() - 1);
 
+	stk.push({UNDEFINED, START});
 
-	for (int rowIdx = 0; rowIdx < (2*this->length + 1); rowIdx++) {
-		for (int colIdx = 0; colIdx < (2*this->length + 1); colIdx++) {
-			if (!pixelIsWhite(img[rowIdx][colIdx])) continue;
+	while (stk.top().second != END) {
+		auto top = stk.top();
+		stk.pop();
+		pair<int, int> parent = top.first;
+		pair<int, int> curr = top.second;
 
-			pair<int, int> curr(rowIdx, colIdx);
-			dist[curr] = INFTY;
-			prev[curr] = UNDEFINED;
-			
-			q.insert(curr);
+		if (s.find(curr) != s.end()) {
+			img[curr.first][curr.second] = BLUE;
+			cout << "blue" << endl;
+			continue;
+		}
+
+		img[curr.first][curr.second] = RED;
+		
+		s.insert(parent);
+		s.insert(curr);
+		edge_map[curr] = parent;
+		vector<pair<int, int>> neighbors = getPixelNeighbors(curr, img);
+
+		for (auto neighbor : neighbors) {
+			stk.push({curr, neighbor});
+			edge_map[neighbor] = curr;
 		}
 	}
-	
-	dist[pair<int, int>(startRowIdx, startColIdx)] = 0;
-
-	while (!q.empty()) {
-		unsigned min_dist = INFTY;
-		pair<int, int> u;
-
-		for (pair<int, int> v : q) {
-			if (min_dist >= dist[v]) {
-				min_dist = dist[v];
-				u = v;
-			}
-		}
-
-		q.erase(u);
-		int rowIdx = u.first;
-		int colIdx = u.second;
-
-		vector<pair<int, int>> neighbors = this->getPixelNeighbors(rowIdx, colIdx, img);
-
-		for (pair<int, int> v : neighbors) {
-			unsigned alt = dist[u];
-			if (dist[u] != INFTY) alt++;
-
-			if (alt < dist[v]) {
-				dist[v] = alt;
-				prev[v] = u;
-			}
-		}
-	
-	}
-
-	img[startRowIdx][startColIdx] = RED;
-	pair<int, int> u = END;
-	
-	if (prev[u] != UNDEFINED || u == END) {
-		while (prev[u] != UNDEFINED) {
-			int rowIdx = u.first;
-			int colIdx = u.second;
-
-			img[rowIdx][colIdx] = RED;
-			u = prev[u];
-		}
-	}
+		
+	img[END.first][END.second] = RED;
 }
 
 void Maze::solveMaze() {

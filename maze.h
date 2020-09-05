@@ -35,7 +35,7 @@ class Maze {
 		vector<tuple<Cell *, Cell *, Direction>> getNeighbors(Cell *& c);
 		bool coordinateInsideMaze(int rowIdx, int colIdx);
 		void solveMazeHelper(int startRowIdx, int startColIdx, image<rgb_pixel> & img);
-		vector<pair<int, int>> getPixelNeighbors(int rowIdx, int colIdx, image<rgb_pixel> & img);
+		vector<pair<int, int>> getPixelNeighbors(pair<int, int> & curr, image<rgb_pixel> & img);
 
 		struct pair_hash {
 			template <class T1, class T2>

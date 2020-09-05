@@ -1,5 +1,6 @@
 EXENAME=maze
 CC=g++
+#CC_FLAGS=-g
 CC_FLAGS=-O2 -Wall
 OBJS=main.o maze.o cell.o
 LIBPNG_OBJ=libpng-config --cflags
