@@ -32,11 +32,20 @@ class Maze {
 
 		void clearMaze();
 		void createEmptyMaze();
-		bool ** getVisitedMatrix();
 		vector<tuple<Cell *, Cell *, Direction>> getNeighbors(Cell *& c);
 		bool coordinateInsideMaze(int rowIdx, int colIdx);
-		void solveMazeHelper(int rowIdx, int colIdx, image<rgb_pixel> & img, bool **& visited);
+		void solveMazeHelper(int startRowIdx, int startColIdx, image<rgb_pixel> & img);
 		vector<pair<int, int>> getPixelNeighbors(int rowIdx, int colIdx, image<rgb_pixel> & img);
+
+		struct pair_hash {
+			template <class T1, class T2>
+			size_t operator()(pair<T1, T2> const & pair) const {
+				size_t h1 = hash<T1>()(pair.first);
+				size_t h2 = hash<T1>()(pair.second);
+
+				return h1 ^ h2;
+			}
+		};
 };
 
 #endif
