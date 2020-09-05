@@ -6,7 +6,6 @@
 #define WHITE rgb_pixel(255, 255, 255)
 #define BLACK rgb_pixel(0, 0, 0)
 #define RED rgb_pixel(255, 0, 0)
-#define BLUE rgb_pixel(0, 255, 0)
 
 Maze::Maze(int length) {
 	this->length = length;
@@ -141,26 +140,25 @@ void Maze::solveMazeHelper(int startRowIdx, int startColIdx, image<rgb_pixel> & 
 		pair<int, int> parent = top.first;
 		pair<int, int> curr = top.second;
 
-		if (s.find(curr) != s.end()) {
-			img[curr.first][curr.second] = BLUE;
-			cout << "blue" << endl;
+		if (s.find(curr) != s.end())
 			continue;
-		}
 
-		img[curr.first][curr.second] = RED;
-		
-		s.insert(parent);
 		s.insert(curr);
 		edge_map[curr] = parent;
 		vector<pair<int, int>> neighbors = getPixelNeighbors(curr, img);
 
 		for (auto neighbor : neighbors) {
 			stk.push({curr, neighbor});
-			edge_map[neighbor] = curr;
 		}
 	}
-		
-	img[END.first][END.second] = RED;
+
+	edge_map[END] = stk.top().first;
+	pair<int, int> curr = END;
+
+	while (curr != UNDEFINED) {
+		img[curr.first][curr.second] = RED;
+		curr = edge_map[curr];
+	}
 }
 
 void Maze::solveMaze() {
