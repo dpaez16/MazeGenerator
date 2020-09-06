@@ -1,7 +1,4 @@
 #include "maze.h"
-#include <iostream>
-#include <unordered_set>
-#include <unordered_map>
 
 #define WHITE rgb_pixel(255, 255, 255)
 #define BLACK rgb_pixel(0, 0, 0)
