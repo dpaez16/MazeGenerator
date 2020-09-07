@@ -14,7 +14,7 @@ void checkArgs(int argc, char ** argv, int & length) {
 	if (sscanf(argv[1], "%d", &length) == 0)
 		printUsage();
 
-	assert(length != 0);
+	assert(length > 0);
 }
 
 int main(int argc, char ** argv) {
