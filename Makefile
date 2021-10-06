@@ -1,27 +1,31 @@
 EXENAME=maze
+
 CC=g++
-#CC_FLAGS=-g
 CC_FLAGS=-O2 -Wall
-OBJS=main.o maze.o cell.o
+
+SRC=src
+SRCS=$(wildcard $(SRC)/*.cpp)
+OBJS=$(patsubst $(SRC)/%.cpp, %.o, $(SRCS))
+
+INCLUDE=include
+INC=-I $(INCLUDE)
+
 LIBPNG_OBJ=libpng-config --cflags
 LIBPNG_FINAL=libpng-config --ldflags --libs
 
-CELL = cell.h cell.cpp
-MAZE = maze.h maze.cpp
+debug: CC_FLAGS=-g
+debug: clean
+debug: build
 
 build: $(OBJS)
-	$(CC) $(CC_FLAGS) -o $(EXENAME) $(OBJS) `$(LIBPNG_FINAL)`
+	$(CC) $(INC) $(CC_FLAGS) -o $(EXENAME) $(OBJS) `$(LIBPNG_FINAL)`
 
-main.o: main.cpp maze.h cell.h
-	$(CC) $(CC_FLAGS) -c main.cpp maze.h cell.h `$(LIBPNG_OBJ)`
+maze.o: $(SRC)/maze.cpp
+	$(CC) $(INC) $(CC_FLAGS) -c $(<) `$(LIBPNG_OBJ)`
 
-maze.o: $(MAZE)
-	$(CC) $(CC_FLAGS) -c $(MAZE) `$(LIBPNG_OBJ)`
-
-cell.o: $(CELL)
-	$(CC) $(CC_FLAGS) -c $(CELL)
+%.o: $(SRC)/%.cpp
+		$(CC) $(INC) $(CC_FLAGS) -c $(<) -o $(@)
 
 clean:
 	rm -rf $(EXENAME) *.o *.gch *.png
-	clear
-	clear
+

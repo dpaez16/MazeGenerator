@@ -1,6 +1,6 @@
-#include "maze.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "maze.h"
 
 void printUsage() {
 	fprintf(stderr, "Usage: ./maze length\n");
